@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz App</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f3f3f3;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .quiz-box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+      width: 500px;
+    }
+
+    .quiz-box h2 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .question {
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    .options label {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+
+    .navigation {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+    }
+
+    #prevBtn {
+      background-color: #6c757d;
+    }
+
+    #nextBtn {
+      background-color: #28a745;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="quiz-box">
+    <h2>Welcome to the Quiz!</h2>
+    <div id="quiz-container">
+      <!-- Question and options will load here -->
+    </div>
+
+    <div class="navigation">
+      <button id="prevBtn" disabled>Previous</button>
+      <button id="nextBtn">Next</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <script>
+    let quizData = [];
+    let currentIndex = 0;
+    let selectedAnswers = {};
+
+    const quizContainer = document.getElementById('quiz-container');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    async function fetchQuizData() {
+      try {
+        const res = await axios.get('/user/quiz', { headers: { 'Authorization': getToken() } });
+        quizData = res.data;
+        showQuestion();
+      } catch (err) {
+        quizContainer.innerHTML = "<p>Failed to load quiz. Please try again later.</p>";
+        console.error(err);
+      }
+    }
+
+    function showQuestion() {
+      const question = quizData[currentIndex];
+      if (!question) return;
+
+      quizContainer.innerHTML = `
+        <div class="question">
+          ${currentIndex + 1}. ${question.question}
+        </div>
+        <div class="options">
+          <label><input type="radio" name="option" value="${question.optionA}"> A. ${question.optionA}</label>
+          <label><input type="radio" name="option" value="${question.optionB}"> B. ${question.optionB}</label>
+          <label><input type="radio" name="option" value="${question.optionC}"> C. ${question.optionC}</label>
+          <label><input type="radio" name="option" value="${question.optionD}"> D. ${question.optionD}</label>
+        </div>
+      `;
+
+      const selected = selectedAnswers[currentIndex];
+      if (selected) {
+        const optionInputs = document.querySelectorAll('input[name="option"]');
+        optionInputs.forEach(input => {
+          if (input.value === selected) input.checked = true;
+        });
+      }
+
+      prevBtn.disabled = currentIndex === 0;
+      nextBtn.textContent = currentIndex === quizData.length - 1 ? "Submit Quiz" : "Next";
+    }
+
+    function saveSelectedAnswer() {
+      const selected = document.querySelector('input[name="option"]:checked');
+      if (selected) {
+        selectedAnswers[currentIndex] = selected.value;
+      }
+    }
+
+    prevBtn.addEventListener('click', () => {
+      saveSelectedAnswer();
+      if (currentIndex > 0) {
+        currentIndex--;
+        showQuestion();
+      }
+    });
+
+    nextBtn.addEventListener('click', () => {
+      saveSelectedAnswer();
+
+      if (currentIndex < quizData.length - 1) {
+        currentIndex++;
+        showQuestion();
+      } else {
+        axios.post('/user/quiz/submit', selectedAnswers, { headers: { 'Authorization': getToken() } })
+          .then(res => {
+            const score = res.data.score;
+            sessionStorage.setItem('quizScore', score);
+            window.location.replace('/user/result');
+          })
+          .catch(err => {
+            console.error("Error submitting quiz:", err);
+            alert("Failed to submit quiz. Please try again later.");
+          });
+      }
+    });
+
+    function getToken() {
+      const token = localStorage.getItem('token');
+      console.log("token: ", token);
+      if (token) {
+        console.log("this is also working.");
+        return token;
+      } else {
+        alert("You are not Authorized person!!");
+        window.location.replace(`${window.location.origin}`);
+      }
+    }
+
+    fetchQuizData();
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Result</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f7f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+
+    .result-box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .result-box h2 {
+      margin-bottom: 10px;
+    }
+
+    .result-box button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      border: none;
+      background-color: #3498db;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .result-box button:hover {
+      background-color: #2980b9;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="result-box">
+    <h2>Thanks for taking the quiz!</h2>
+    <p id="scoreText">Loading your score...</p>
+    <button id="home-btn" onclick="window.location.href='/'">Go to Home</button>
+  </div>
+
+  <script>
+    const score = sessionStorage.getItem('quizScore');
+    const home_btn = document.getElementById('home-btn');
+    if (score !== null) {
+      document.getElementById('scoreText').textContent = `Your score is: ${score}/10`;
+      sessionStorage.removeItem('quizScore');
+    } else {
+      document.getElementById('scoreText').textContent = `Score not found.`;
+    }
+
+    localStorage.clear();
+  </script>
+</body>
+
+</html>

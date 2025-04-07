@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz Registration</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      margin-bottom: 1.5rem;
+    }
+
+    input,
+    button {
+      display: block;
+      width: 100%;
+      margin-bottom: 1rem;
+      padding: 0.7rem;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #message {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Welcome to the Quiz!</h1>
+    <form id="registrationForm">
+      <input type="text" id="name" placeholder="Enter your name" required />
+      <input type="email" id="email" placeholder="Enter your email" required />
+      <input type="text" id="location" placeholder="Enter your location" required />
+      <button type="submit">Start Quiz</button>
+    </form>
+    <p id="message"></p>
+  </div>
+
+  <script>
+    const form = document.getElementById('registrationForm');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const user = {
+        name: document.getElementById('name').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        location: document.getElementById('location').value.trim()
+      };
+
+      try {
+        const res = await axios.post('/user/register', user);
+        if (res.status === 201) {
+          localStorage.setItem("token", res.data.token);
+          window.location.replace('/user/quiz-page');
+        }
+        else {
+          message.textContent = res.data.message || 'Something went wrong!';
+        }
+      }
+      catch (err) {
+        if (err.status === 403) {
+          alert("You can not take this quiz anymore.")
+        }
+        else {
+          message.textContent = err.response?.data?.message || 'Server error. Try again.';
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
